@@ -138,22 +138,24 @@ const TetrisGame = () => {
   console.log('Game grid:', grid); // Debug information
 
   return (
-    <div className="tetris-game">
-      {displayGrid.map((row, rowIndex) => (
-        <div key={rowIndex} className="row">
-          {row.map((cell, cellIndex) => (
-            <div
-              key={cellIndex}
-              className={`cell ${cell ? 'filled' : ''}`}
-              style={{ backgroundColor: cell || 'white' }}
-            />
+    <div className="tetris-container">
+      {gameOver ? (
+        <div className="game-over-message">Game Over</div>
+      ) : (
+        <div className="tetris-game">
+          {displayGrid.map((row, rowIndex) => (
+            <div key={rowIndex} className="row">
+              {row.map((cell, cellIndex) => (
+                <div
+                  key={cellIndex}
+                  className={`cell ${cell ? 'filled' : ''}`}
+                  style={{ backgroundColor: cell || 'black' }}
+                />
+              ))}
+            </div>
           ))}
         </div>
-      ))}
-      {gameOver && <div className="game-over">Game Over</div>}
-      <div className="debug-info">
-        <pre>{JSON.stringify(piece, null, 2)}</pre>
-      </div>
+      )}
     </div>
   );
 };
@@ -165,13 +167,18 @@ const createEmptyGrid = () => {
 
 const createNewPiece = () => {
   const pieces = [
-    { shape: [[1, 1], [1, 1]], color: 'red', position: { x: 4, y: 0 } },
-    { shape: [[0, 1, 0], [1, 1, 1]], color: 'green', position: { x: 4, y: 0 } },
-    { shape: [[1, 1, 1, 1]], color: 'blue', position: { x: 3, y: 0 } },
-    { shape: [[0, 1, 1], [1, 1, 0]], color: 'black', position: { x: 4, y: 0 } },
-    { shape: [[1, 1, 0], [0, 1, 1]], color: 'pink', position: { x: 4, y: 0 } },
-    { shape: [[1, 1], [0,1], [0,1]], color: 'yellow', position: { x: 4, y: 0 } },
-    { shape: [[1, 1], [1,0], [1,0]], color: 'brown', position: { x: 4, y: 0 } },
+    { shape: [[1, 1], [1, 1]], color: '#E69F00', position: { x: 4, y: 0 } }, // Orange
+    { shape: [[0, 1, 0], [1, 1, 1]], color: '#56B4E9', position: { x: 4, y: 0 } }, // Sky Blue
+    { shape: [[1, 1, 1, 1]], color: '#009E73', position: { x: 3, y: 0 } }, // Teal Green
+    { shape: [[0, 1, 1], [1, 1, 0]], color: '#F0E442', position: { x: 4, y: 0 } }, // Yellow
+    { shape: [[1, 1, 0], [0, 1, 1]], color: '#0072B2', position: { x: 4, y: 0 } }, // Deep Blue
+    { shape: [[1, 1], [0,1], [0,1]], color: '#D55E00', position: { x: 4, y: 0 } }, // Burnt Red
+    { shape: [[1, 1], [1,0], [1,0]], color: '#CC79A7', position: { x: 4, y: 0 } }, // Soft Purple
+    // { shape: [[1, 1, 1, 1, 1, 1, 1]], color: 'brown', position: { x: 2, y: 0 } },
+    // { shape: [[1, 1], [1,0], [1,1], [1,0], [1,0]], color: 'brown', position: { x: 2, y: 0 } },
+    // { shape: [[0,1,0], [1,1,1], [0,1,0]], color: 'brown', position: { x: 2, y: 0 } },
+    // { shape: [[0,1,1], [1,0,0], [1,0,0], [0,1,1]], color: 'brown', position: { x: 2, y: 0 } },
+    // { shape: [[1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1]], color: 'brown', position: { x: 2, y: 0 } },
     
   ];
   return pieces[Math.floor(Math.random() * pieces.length)];

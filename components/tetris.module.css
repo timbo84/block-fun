@@ -1,0 +1,25 @@
+.customBtn {
+    background: linear-gradient(135deg, #c59337, #9b203f); /* Gradient */
+    color: #f1ffc4; /* Light text */
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+  }
+  
+  .customBtn:hover {
+    background: linear-gradient(135deg, #c59337, #9b203f); /* Reverse gradient */
+    transform: scale(1.03);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .customBtn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
