@@ -5,6 +5,9 @@ const TetrisGame = () => {
   const [piece, setPiece] = useState(createNewPiece());
   const [gameOver, setGameOver] = useState(false);
 
+  // Load game over sound
+  const gameOverSound = typeof window !== 'undefined' ? new Audio('/game-over.mp3') : null;
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowLeft') {
@@ -35,6 +38,14 @@ const TetrisGame = () => {
     return () => clearInterval(gameLoop);
   }, [piece, gameOver]);
 
+  // Play game over sound when game over state is set
+  useEffect(() => {
+    if (gameOver && gameOverSound) {
+      gameOverSound.currentTime = 0; // Reset sound
+      gameOverSound.play();
+    }
+  }, [gameOver]);
+
   const movePiece = (dx, dy) => {
     if (!piece || !piece.position) return;
 
@@ -43,11 +54,10 @@ const TetrisGame = () => {
     if (!isCollision(newPiece)) {
       setPiece(newPiece);
     } else if (dy !== 0) {
-      // Place piece on the grid and create a new piece if it hits the bottom
       placePieceOnGrid();
       const newPiece = createNewPiece();
       if (isCollision(newPiece)) {
-        setGameOver(true);
+        setGameOver(true); // Triggers game over sound
       } else {
         setPiece(newPiece);
       }
@@ -97,11 +107,10 @@ const TetrisGame = () => {
 
   const clearCompleteRows = (newGrid) => {
     let clearedRows = 0;
-  
+
     for (let y = newGrid.length - 1; y >= 0; y--) {
       if (newGrid[y].every(cell => cell !== 0)) {
         clearedRows++;
-        // Shift rows above down
         for (let row = y; row > 0; row--) {
           newGrid[row] = [...newGrid[row - 1]];
         }
@@ -109,12 +118,11 @@ const TetrisGame = () => {
         y++; // Recheck this row after shifting
       }
     }
-  
-    console.log('Rows cleared:', clearedRows); // Debug information
+    console.log('Rows cleared:', clearedRows);
   };
 
   const renderGridWithPiece = () => {
-    const tempGrid = grid.map((row) => row.slice()); // Create a copy of the grid
+    const tempGrid = grid.map((row) => row.slice());
     const { shape, position, color } = piece;
 
     shape.forEach((row, y) => {
@@ -133,9 +141,6 @@ const TetrisGame = () => {
   };
 
   const displayGrid = renderGridWithPiece();
-
-  console.log('Current piece:', piece); // Debug information
-  console.log('Game grid:', grid); // Debug information
 
   return (
     <div className="tetris-container">
@@ -167,25 +172,23 @@ const createEmptyGrid = () => {
 
 const createNewPiece = () => {
   const pieces = [
-    { shape: [[1, 1], [1, 1]], color: '#E69F00', position: { x: 4, y: 0 } }, // Orange
-    { shape: [[0, 1, 0], [1, 1, 1]], color: '#56B4E9', position: { x: 4, y: 0 } }, // Sky Blue
-    { shape: [[1, 1, 1, 1]], color: '#009E73', position: { x: 3, y: 0 } }, // Teal Green
-    { shape: [[0, 1, 1], [1, 1, 0]], color: '#F0E442', position: { x: 4, y: 0 } }, // Yellow
-    { shape: [[1, 1, 0], [0, 1, 1]], color: '#0072B2', position: { x: 4, y: 0 } }, // Deep Blue
-    { shape: [[1, 1], [0,1], [0,1]], color: '#D55E00', position: { x: 4, y: 0 } }, // Burnt Red
-    { shape: [[1, 1], [1,0], [1,0]], color: '#CC79A7', position: { x: 4, y: 0 } }, // Soft Purple
-    // { shape: [[1, 1, 1, 1, 1, 1, 1]], color: 'brown', position: { x: 2, y: 0 } },
+    { shape: [[1, 1], [1, 1]], color: '#E69F00', position: { x: 4, y: 0 } },
+    { shape: [[0, 1, 0], [1, 1, 1]], color: '#56B4E9', position: { x: 4, y: 0 } },
+    { shape: [[1, 1, 1, 1]], color: '#009E73', position: { x: 3, y: 0 } },
+    { shape: [[0, 1, 1], [1, 1, 0]], color: '#F0E442', position: { x: 4, y: 0 } },
+    { shape: [[1, 1, 0], [0, 1, 1]], color: '#0072B2', position: { x: 4, y: 0 } },
+    { shape: [[1, 1], [0,1], [0,1]], color: '#D55E00', position: { x: 4, y: 0 } },
+    { shape: [[1, 1], [1,0], [1,0]], color: '#CC79A7', position: { x: 4, y: 0 } },
+     // { shape: [[1, 1, 1, 1, 1, 1, 1]], color: 'brown', position: { x: 2, y: 0 } },
     // { shape: [[1, 1], [1,0], [1,1], [1,0], [1,0]], color: 'brown', position: { x: 2, y: 0 } },
     // { shape: [[0,1,0], [1,1,1], [0,1,0]], color: 'brown', position: { x: 2, y: 0 } },
     // { shape: [[0,1,1], [1,0,0], [1,0,0], [0,1,1]], color: 'brown', position: { x: 2, y: 0 } },
     // { shape: [[1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1]], color: 'brown', position: { x: 2, y: 0 } },
-    
   ];
   return pieces[Math.floor(Math.random() * pieces.length)];
 };
 
 const rotate = (shape) => {
-  // Implement rotation logic
   return shape[0].map((_, index) => shape.map(row => row[index])).reverse();
 };
 
