@@ -7,18 +7,35 @@
   height: 100vh;
   background: linear-gradient(135deg, #0a0a11, #233568);
   text-align: center;
+  padding: 1rem; /* Prevents content from touching edges */
 }
 
 .content {
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 90vw; /* Prevents overflow on smaller screens */
 }
 
 .title {
   font-size: 3rem;
-  font-family: 'Press Start 2P', cursive; /* Pixelated font */
+  font-family: 'Press Start 2P', cursive;
   color: #fff;
   text-shadow: 4px 4px 0px #000;
   margin-bottom: 20px;
+}
+
+/* 🔹 Make it responsive for smaller screens */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem; /* Reduce size for better fit */
+    text-shadow: 2px 2px 0px #000;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.5rem; /* Further reduce for very small screens */
+    text-shadow: 1px 1px 0px #000;
+  }
 }

@@ -144,9 +144,10 @@ const TetrisGame = () => {
 
   return (
     <div className="tetris-container">
-      {gameOver ? (
-        <div className="game-over-message">Game Over</div>
-      ) : (
+    {gameOver ? (
+      <div className="game-over-message">Game Over</div>
+    ) : (
+      <>
         <div className="tetris-game">
           {displayGrid.map((row, rowIndex) => (
             <div key={rowIndex} className="row">
@@ -160,14 +161,24 @@ const TetrisGame = () => {
             </div>
           ))}
         </div>
-      )}
-    </div>
+
+        {/* Mobile Touch Controls */}
+        <div className="controls">
+          <button onClick={() => movePiece(-1, 0)}>⬅️</button>
+          <button onClick={rotatePiece}>🔄</button>
+          <button onClick={() => movePiece(1, 0)}>➡️</button>
+          <button onClick={() => movePiece(0, 1)}>⬇️</button>
+          <button onClick={() => dropPiece()}>⬆️</button>
+        </div>
+      </>
+    )}
+  </div>
   );
 };
 
 // Define helper functions to create an empty grid, new piece, and rotate piece
 const createEmptyGrid = () => {
-  return Array.from({ length: 20 }, () => Array(10).fill(0));
+  return Array.from({ length: 25 }, () => Array(10).fill(0));
 };
 
 const createNewPiece = () => {
