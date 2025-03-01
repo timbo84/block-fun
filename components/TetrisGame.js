@@ -1,47 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import styles from "./tetris.module.css";
 
-const TetrisGame = () => {
+const TetrisGame = ({ audio }) => {
   const [grid, setGrid] = useState(createEmptyGrid());
   const [piece, setPiece] = useState(createNewPiece());
   const [gameOver, setGameOver] = useState(false);
+  const [score, setScore] = useState(0);
 
-  // Load game over sound
-  const gameOverSound = typeof window !== 'undefined' ? new Audio('/game-over.mp3') : null;
+  // Load sound effects
+  const clearSound =
+    typeof window !== "undefined" ? new Audio("/line-clear.mp3") : null;
+  const tetrisSound =
+    typeof window !== "undefined" ? new Audio("/4-line-clear.mp3") : null;
+  const gameOverSound =
+    typeof window !== "undefined" ? new Audio("/game-over.mp3") : null;
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'ArrowLeft') {
+      if (event.key === "ArrowLeft") {
         movePiece(-1, 0);
-      } else if (event.key === 'ArrowRight') {
+      } else if (event.key === "ArrowRight") {
         movePiece(1, 0);
-      } else if (event.key === 'ArrowDown') {
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
         movePiece(0, 1);
-      } else if (event.key === ' ') {
-        event.preventDefault(); // Prevent default behavior of spacebar
+      } else if (event.key === " ") {
+        event.preventDefault();
         rotatePiece();
       }
+      // else if (event.key === 'ArrowUp') {
+      //   event.preventDefault();
+      //   dropPiece();
+      // }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [piece]);
 
   useEffect(() => {
     const gameLoop = setInterval(() => {
       if (piece && !gameOver) {
-        movePiece(0, 1); // Move piece down every interval
+        movePiece(0, 1);
       }
     }, 1000);
 
     return () => clearInterval(gameLoop);
   }, [piece, gameOver]);
 
-  // Play game over sound when game over state is set
   useEffect(() => {
     if (gameOver && gameOverSound) {
-      gameOverSound.currentTime = 0; // Reset sound
+      gameOverSound.currentTime = 0;
       gameOverSound.play();
     }
   }, [gameOver]);
@@ -49,7 +58,10 @@ const TetrisGame = () => {
   const movePiece = (dx, dy) => {
     if (!piece || !piece.position) return;
 
-    const newPiece = { ...piece, position: { x: piece.position.x + dx, y: piece.position.y + dy } };
+    const newPiece = {
+      ...piece,
+      position: { x: piece.position.x + dx, y: piece.position.y + dy },
+    };
 
     if (!isCollision(newPiece)) {
       setPiece(newPiece);
@@ -57,7 +69,7 @@ const TetrisGame = () => {
       placePieceOnGrid();
       const newPiece = createNewPiece();
       if (isCollision(newPiece)) {
-        setGameOver(true); // Triggers game over sound
+        setGameOver(true);
       } else {
         setPiece(newPiece);
       }
@@ -66,7 +78,6 @@ const TetrisGame = () => {
 
   const rotatePiece = () => {
     if (!piece || !piece.shape) return;
-
     const newShape = rotate(piece.shape);
     const newPiece = { ...piece, shape: newShape };
 
@@ -82,7 +93,12 @@ const TetrisGame = () => {
         if (shape[y][x] !== 0) {
           const newX = position.x + x;
           const newY = position.y + y;
-          if (newX < 0 || newX >= grid[0].length || newY >= grid.length || (newY >= 0 && grid[newY][newX] !== 0)) {
+          if (
+            newX < 0 ||
+            newX >= grid[0].length ||
+            newY >= grid.length ||
+            (newY >= 0 && grid[newY][newX] !== 0)
+          ) {
             return true;
           }
         }
@@ -94,6 +110,7 @@ const TetrisGame = () => {
   const placePieceOnGrid = () => {
     const { shape, position, color } = piece;
     const newGrid = [...grid];
+
     shape.forEach((row, y) => {
       row.forEach((value, x) => {
         if (value !== 0) {
@@ -101,24 +118,56 @@ const TetrisGame = () => {
         }
       });
     });
+
     clearCompleteRows(newGrid);
     setGrid(newGrid);
   };
 
   const clearCompleteRows = (newGrid) => {
-    let clearedRows = 0;
+    let rowsToClear = [];
 
-    for (let y = newGrid.length - 1; y >= 0; y--) {
-      if (newGrid[y].every(cell => cell !== 0)) {
-        clearedRows++;
-        for (let row = y; row > 0; row--) {
-          newGrid[row] = [...newGrid[row - 1]];
-        }
-        newGrid[0] = Array(10).fill(0);
-        y++; // Recheck this row after shifting
+    // Find full rows
+    for (let y = 0; y < newGrid.length; y++) {
+      if (newGrid[y].every((cell) => cell !== 0)) {
+        rowsToClear.push(y);
       }
     }
-    console.log('Rows cleared:', clearedRows);
+
+    if (rowsToClear.length === 0) return; // Avoid unnecessary state updates
+
+    // Flash gradient effect before clearing
+    rowsToClear.forEach((row) => {
+      newGrid[row] = Array(10)
+        .fill()
+        .map((_, i) => {
+          const blueShade = Math.round((255 / 9) * i);
+          return `rgb(${blueShade}, ${blueShade}, 255)`;
+        });
+    });
+    setGrid([...newGrid]);
+
+    setTimeout(() => {
+      // Remove the rows after flashing
+      rowsToClear.forEach((row) => {
+        newGrid.splice(row, 1);
+        newGrid.unshift(Array(10).fill(0));
+      });
+
+      // **Update the score based on the number of rows cleared**
+      const points = [0, 100, 300, 500, 800]; // Scoring table
+      setScore((prevScore) => prevScore + points[rowsToClear.length]);
+
+      // Play sound effect
+      if (rowsToClear.length === 4) {
+        tetrisSound.currentTime = 0;
+        tetrisSound.play();
+      } else {
+        clearSound.currentTime = 0;
+        clearSound.play();
+      }
+
+      setGrid([...newGrid]);
+    }, 300);
   };
 
   const renderGridWithPiece = () => {
@@ -130,7 +179,12 @@ const TetrisGame = () => {
         if (value !== 0) {
           const newY = position.y + y;
           const newX = position.x + x;
-          if (newY >= 0 && newY < tempGrid.length && newX >= 0 && newX < tempGrid[0].length) {
+          if (
+            newY >= 0 &&
+            newY < tempGrid.length &&
+            newX >= 0 &&
+            newX < tempGrid[0].length
+          ) {
             tempGrid[newY][newX] = color;
           }
         }
@@ -140,39 +194,78 @@ const TetrisGame = () => {
     return tempGrid;
   };
 
+  const resetGame = () => {
+    setGrid(createEmptyGrid());
+    setPiece(createNewPiece());
+    setScore(0);
+    setGameOver(false);
+  };
+
   const displayGrid = renderGridWithPiece();
 
   return (
     <div className="tetris-container">
-    {gameOver ? (
-      <div className="game-over-message">Game Over</div>
-    ) : (
-      <>
-        <div className="tetris-game">
-          {displayGrid.map((row, rowIndex) => (
-            <div key={rowIndex} className="row">
-              {row.map((cell, cellIndex) => (
-                <div
-                  key={cellIndex}
-                  className={`cell ${cell ? 'filled' : ''}`}
-                  style={{ backgroundColor: cell || 'black' }}
-                />
-              ))}
-            </div>
-          ))}
+      {gameOver ? (
+        <div className="game-over-message">
+          Game Over
+          <br />
+          <button onClick={resetGame} className={styles.customBtn}>
+            Restart
+          </button>{" "}
         </div>
-
-        {/* Mobile Touch Controls */}
-        <div className="controls">
-          <button onClick={() => movePiece(-1, 0)}>⬅️</button>
-          <button onClick={rotatePiece}>🔄</button>
-          <button onClick={() => movePiece(1, 0)}>➡️</button>
-          <button onClick={() => movePiece(0, 1)}>⬇️</button>
-          <button onClick={() => dropPiece()}>⬆️</button>
-        </div>
-      </>
-    )}
-  </div>
+      ) : (
+        <>
+          <div className="tetris-game">
+            {displayGrid.map((row, rowIndex) => (
+              <div key={rowIndex} className="row">
+                {row.map((cell, cellIndex) => (
+                  <div
+                    key={cellIndex}
+                    className={`cell ${
+                      cell === "white" ? "flash" : cell ? "filled" : ""
+                    }`}
+                    style={{
+                      backgroundColor:
+                        cell !== "white" ? cell || "black" : "white",
+                    }}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      <div
+        key={score} // Forces re-render when score changes
+        style={{
+          fontSize: "24px",
+          fontWeight: "bold",
+          marginBottom: "10px",
+          animation: "scoreBump 0.3s ease-in-out",
+        }}
+      >
+        Score: {score}
+      </div>
+      <div
+        style={{
+          width: "100%",
+          height: "10px",
+          background: "gray",
+          borderRadius: "5px",
+          marginBottom: "10px",
+        }}
+      >
+        <div
+          style={{
+            width: `${(score % 1000) / 10}%`,
+            height: "100%",
+            background: "limegreen",
+            borderRadius: "5px",
+            transition: "width 0.3s ease-in-out",
+          }}
+        ></div>
+      </div>
+    </div>
   );
 };
 
@@ -183,14 +276,58 @@ const createEmptyGrid = () => {
 
 const createNewPiece = () => {
   const pieces = [
-    { shape: [[1, 1], [1, 1]], color: '#E69F00', position: { x: 4, y: 0 } },
-    { shape: [[0, 1, 0], [1, 1, 1]], color: '#56B4E9', position: { x: 4, y: 0 } },
-    { shape: [[1, 1, 1, 1]], color: '#009E73', position: { x: 3, y: 0 } },
-    { shape: [[0, 1, 1], [1, 1, 0]], color: '#F0E442', position: { x: 4, y: 0 } },
-    { shape: [[1, 1, 0], [0, 1, 1]], color: '#0072B2', position: { x: 4, y: 0 } },
-    { shape: [[1, 1], [0,1], [0,1]], color: '#D55E00', position: { x: 4, y: 0 } },
-    { shape: [[1, 1], [1,0], [1,0]], color: '#CC79A7', position: { x: 4, y: 0 } },
-     // { shape: [[1, 1, 1, 1, 1, 1, 1]], color: 'brown', position: { x: 2, y: 0 } },
+    {
+      shape: [
+        [1, 1],
+        [1, 1],
+      ],
+      color: "#E69F00",
+      position: { x: 4, y: 0 },
+    },
+    {
+      shape: [
+        [0, 1, 0],
+        [1, 1, 1],
+      ],
+      color: "#56B4E9",
+      position: { x: 4, y: 0 },
+    },
+    { shape: [[1, 1, 1, 1]], color: "#009E73", position: { x: 3, y: 0 } },
+    {
+      shape: [
+        [0, 1, 1],
+        [1, 1, 0],
+      ],
+      color: "#F0E442",
+      position: { x: 4, y: 0 },
+    },
+    {
+      shape: [
+        [1, 1, 0],
+        [0, 1, 1],
+      ],
+      color: "#0072B2",
+      position: { x: 4, y: 0 },
+    },
+    {
+      shape: [
+        [1, 1],
+        [0, 1],
+        [0, 1],
+      ],
+      color: "#D55E00",
+      position: { x: 4, y: 0 },
+    },
+    {
+      shape: [
+        [1, 1],
+        [1, 0],
+        [1, 0],
+      ],
+      color: "#CC79A7",
+      position: { x: 4, y: 0 },
+    },
+    // { shape: [[1, 1, 1, 1, 1, 1, 1]], color: 'brown', position: { x: 2, y: 0 } },
     // { shape: [[1, 1], [1,0], [1,1], [1,0], [1,0]], color: 'brown', position: { x: 2, y: 0 } },
     // { shape: [[0,1,0], [1,1,1], [0,1,0]], color: 'brown', position: { x: 2, y: 0 } },
     // { shape: [[0,1,1], [1,0,0], [1,0,0], [0,1,1]], color: 'brown', position: { x: 2, y: 0 } },
@@ -200,7 +337,7 @@ const createNewPiece = () => {
 };
 
 const rotate = (shape) => {
-  return shape[0].map((_, index) => shape.map(row => row[index])).reverse();
+  return shape[0].map((_, index) => shape.map((row) => row[index])).reverse();
 };
 
 export default TetrisGame;

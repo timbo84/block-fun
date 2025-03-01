@@ -91,7 +91,7 @@ const TetrisModal = () => {
             <button className={styles.customBtnClose} onClick={toggleModal}>
               Close
             </button>
-            <TetrisGame />
+            <TetrisGame audio={audio}/>
             <p>
               Music: {musicOptions[selectedOption].title} by{" "}
               {musicOptions[selectedOption].author}
