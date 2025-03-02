@@ -6,6 +6,9 @@ const TetrisGame = ({ audio }) => {
   const [piece, setPiece] = useState(createNewPiece());
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [progress, setProgress] = useState(0);
+  const [dropSpeed, setDropSpeed] = useState(1000); // Initial drop speed (in ms)
 
   // Load sound effects
   const clearSound =
@@ -43,10 +46,10 @@ const TetrisGame = ({ audio }) => {
       if (piece && !gameOver) {
         movePiece(0, 1);
       }
-    }, 1000);
-
+    }, dropSpeed);
+  
     return () => clearInterval(gameLoop);
-  }, [piece, gameOver]);
+  }, [piece, gameOver, dropSpeed]);
 
   useEffect(() => {
     if (gameOver && gameOverSound) {
@@ -154,8 +157,15 @@ const TetrisGame = ({ audio }) => {
       });
 
       // **Update the score based on the number of rows cleared**
-      const points = [0, 100, 300, 500, 800]; // Scoring table
-      setScore((prevScore) => prevScore + points[rowsToClear.length]);
+      const points = [0, 100, 300, 500, 800, 1000, 1200, 1500]; // Scoring table
+      setScore((prevScore) => {
+        const newScore = prevScore + points[rowsToClear.length];
+
+        const newProgress = (newScore % 1000) / 10; // Normalize progress (0-100%)
+        setProgress(newProgress);
+
+        return newScore;
+      });
 
       // Play sound effect
       if (rowsToClear.length === 4) {
@@ -264,6 +274,11 @@ const TetrisGame = ({ audio }) => {
             transition: "width 0.3s ease-in-out",
           }}
         ></div>
+        <div
+          style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}
+        >
+          Level: {level}
+        </div>
       </div>
     </div>
   );
@@ -327,11 +342,11 @@ const createNewPiece = () => {
       color: "#CC79A7",
       position: { x: 4, y: 0 },
     },
-    // { shape: [[1, 1, 1, 1, 1, 1, 1]], color: 'brown', position: { x: 2, y: 0 } },
-    // { shape: [[1, 1], [1,0], [1,1], [1,0], [1,0]], color: 'brown', position: { x: 2, y: 0 } },
-    // { shape: [[0,1,0], [1,1,1], [0,1,0]], color: 'brown', position: { x: 2, y: 0 } },
-    // { shape: [[0,1,1], [1,0,0], [1,0,0], [0,1,1]], color: 'brown', position: { x: 2, y: 0 } },
-    // { shape: [[1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1]], color: 'brown', position: { x: 2, y: 0 } },
+    // { shape: [[1, 1, 1, 1, 1, 1, 1]], color: 'rgb(119, 71, 31)', position: { x: 2, y: 0 } },
+    // { shape: [[1, 1], [1,0], [1,1], [1,0], [1,0]], color: 'rgb(119, 71, 31)', position: { x: 2, y: 0 } },
+    // { shape: [[0,1,0], [1,1,1], [0,1,0]], color: 'rgb(119, 71, 31)', position: { x: 2, y: 0 } },
+    // { shape: [[0,1,1], [1,0,0], [1,0,0], [0,1,1]], color: 'rgb(119, 71, 31)', position: { x: 2, y: 0 } },
+    // { shape: [[1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1], [1,1,1,1,1]], color: 'rgb(119, 71, 31)', position: { x: 2, y: 0 } },
   ];
   return pieces[Math.floor(Math.random() * pieces.length)];
 };
