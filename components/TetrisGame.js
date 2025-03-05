@@ -58,6 +58,15 @@ const TetrisGame = ({ audio }) => {
     }
   }, [gameOver]);
 
+  useEffect(() => {
+    // Update level and drop speed based on score
+    const newLevel = Math.floor(score / 1000) + 1;
+    if (newLevel !== level) {
+      setLevel(newLevel);
+      setDropSpeed(1000 / newLevel); // Decrease dropSpeed as level increases
+    }
+  }, [score, level]);
+
   const movePiece = (dx, dy) => {
     if (!piece || !piece.position) return;
 
